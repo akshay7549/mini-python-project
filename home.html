@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Video Streaming</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #007bff; /* Blue background */
+        color: white;
+        padding: 10px 20px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .marquee {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+        animation: marquee 10s linear infinite; /* Optional marquee effect */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .btn {
+        text-decoration: none;
+        color: white;
+        font-size: 14px;
+        padding: 5px 10px;
+        border: 1px solid white;
+        border-radius: 5px;
+        background: transparent;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .btn:hover {
+        background-color: white;
+        color: #007bff;
+    }
+
+    .logout-btn {
+        margin-left: 10px;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    .search-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .search-container input {
+        padding: 8px;
+        font-size: 14px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .search-container button {
+        padding: 8px 12px;
+        font-size: 14px;
+        background-color: #007bff;
+        color: white;
+        border: 1px solid #007bff;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .search-container button:hover {
+        background-color: white;
+        color: #007bff;
+    }
+
+    @keyframes marquee {
+        0% { transform: translateX(100%); }
+        100% { transform: translateX(-100%); }
+    }
+
+    .video-list {
+        background-color: #f4f4f4;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .video-item {
+        background-color: #fff;
+        margin-bottom: 15px;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .video-item h3 {
+        color: #333;
+    }
+
+    .video-item p {
+        color: #666;
+    }
+
+    .video-item a, .video-item button {
+        color: #007bff;
+    }
+
+    .video-item a:hover, .video-item button:hover {
+        background-color: #007bff;
+        color: white;
+    }
+
+</style>
+
+<body>
+    <nav>
+        <h1 class="marquee">Welcome to our Video Streaming</h1>
+
+        {% if user %}
+            <a class="btn" href="{{ url_for('upload') }}">Upload Video</a>
+            <a class="btn logout-btn" href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <a class="btn" href="{{ url_for('register') }}">Register</a>
+            <a class="btn login-btn" href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+    </nav>
+
+    <div class="container">
+        <div class="search-container">
+            <input type="text" id="videoSearch" placeholder="Search for videos...">
+            <button id="searchButton" class="btn search-btn">Search</button>
+        </div>
+
+        <div class="filter-container">
+            <h3>Filter by Category</h3>
+            <select id="categoryFilter" class="filter-select" onchange="filterVideos()">
+                <option value="all">All</option>
+                <option value="action">Action</option>
+                <option value="comedy">Comedy</option>
+                <option value="documentary">Documentary</option>
+                <option value="drama">Drama</option>
+            </select>
+        </div>
+
+        <h2>Available Videos</h2>
+        <div class="video-list" id="videoList">
+            {% for video in videos %}
+                <div class="video-item" data-category="{{ video.category|lower }}" id="video-{{ video.id }}">
+                    <h3>{{ video.title }}</h3>
+                    <p>Category: {{ video.category }}</p>
+                    <a class="btn watch-btn" href="{{ url_for('video', video_id=video.id) }}">Watch Video</a>
+                    <button class="btn favorite-btn" onclick="addToFavorites('{{ video.id }}')">Add to Favorites</button>
+                    {% if user %}
+                        <button class="btn delete-btn" onclick="deleteVideo('{{ video.id }}')">Delete Video</button>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p>No videos available at the moment. Please check back later!</p>
+            {% endfor %}
+        </div>
+
+        <h2>Popular Videos</h2>
+        <div class="video-list" id="popularVideos">
+            {% for video in popular_videos %}
+                <div class="video-item" data-category="{{ video.category|lower }}">
+                    <h3>{{ video.title }}</h3>
+                    <p>Category: {{ video.category }}</p>
+                    <a class="btn watch-btn" href="{{ url_for('video', video_id=video.id) }}">Watch Video</a>
+                </div>
+            {% else %}
+                <p>No popular videos at the moment. Please check back later!</p>
+            {% endfor %}
+        </div>
+
+        <h2>Recently Added Videos</h2>
+        <div class="video-list" id="recentVideos">
+            {% for video in recent_videos %}
+                <div class="video-item" data-category="{{ video.category|lower }}">
+                    <h3>{{ video.title }}</h3>
+                    <p>Category: {{ video.category }}</p>
+                    <a class="btn watch-btn" href="{{ url_for('video', video_id=video.id) }}">Watch Video</a>
+                </div>
+            {% else %}
+                <p>No recently added videos at the moment. Please check back later!</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Video Streaming Platform</p>
+        <div class="social-media">
+            <a href="https://www.linkedin.com/in/akshay-kumar-090990249?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">@AkshayKumar</a>
+            <a href="https://www.linkedin.com/in/edidiong-akpabio-5b008426a/">@EdidiongAkpabio</a>
+
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('searchButton').addEventListener('click', searchVideos);
+
+        function searchVideos() {
+            let input = document.getElementById('videoSearch').value.toLowerCase();
+            let videoItems = document.getElementsByClassName('video-item');
+            for (let i = 0; i < videoItems.length; i++) {
+                let title = videoItems[i].getElementsByTagName('h3')[0].innerText.toLowerCase();
+                if (title.includes(input)) {
+                    videoItems[i].style.display = 'block';
+                } else {
+                    videoItems[i].style.display = 'none';
+                }
+            }
+        }
+
+        function filterVideos() {
+            let category = document.getElementById('categoryFilter').value.toLowerCase();
+            let videoItems = document.getElementsByClassName('video-item');
+            for (let i = 0; i < videoItems.length; i++) {
+                let videoCategory = videoItems[i].getAttribute('data-category').toLowerCase();
+                if (category === 'all' || videoCategory === category) {
+                    videoItems[i].style.display = 'block';
+                } else {
+                    videoItems[i].style.display = 'none';
+                }
+            }
+        }
+
+        function addToFavorites(videoId) {
+            alert(`Video with ID: ${videoId} has been added to favorites!`);
+        }
+
+        function deleteVideo(videoId) {
+            let confirmation = confirm('Are you sure you want to delete this video?');
+            if (confirmation) {
+                document.getElementById(`video-${videoId}`).style.display = 'none';
+                alert(`Video with ID: ${videoId} has been deleted!`);
+            }
+        }
+    </script>
+</body>
+</html>
