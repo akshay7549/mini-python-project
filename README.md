@@ -19,7 +19,12 @@ This is a Python-based video streaming application that allows users to stream v
 app.py             # Main application entry point
 requirements.txt   # Python dependencies
 ```
-
+**Steps to run this program**:
+1. Create a folder named templates and add all these html files there
+2. Create another folder named as static for the css file
+3. apps.py is the main file that will be used to run the entire program
+4. models.py must not be in any folder as same applies to apps.py
+5. Create a folder named uploads in the same directory for saving the videos
 ## Prerequisites
 
 - Python 3.x
@@ -51,6 +56,11 @@ requirements.txt   # Python dependencies
 
 2. Open your web browser and navigate to `http://127.0.0.1:5000`.
 
+
+
 ## License
 
 This project is licensed under the MIT License.
+
+
+## For any queries reach out to us at akpabioedidiong753@gmail.com or akshaykumarstm2020@gmail.com
